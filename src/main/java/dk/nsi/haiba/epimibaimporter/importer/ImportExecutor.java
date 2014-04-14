@@ -27,10 +27,8 @@
 package dk.nsi.haiba.epimibaimporter.importer;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
@@ -44,20 +42,9 @@ import dk.nsi.haiba.epimibaimporter.dao.DefaultClassificationCheckDAOColumnMappe
 import dk.nsi.haiba.epimibaimporter.dao.HAIBADAO;
 import dk.nsi.haiba.epimibaimporter.email.EmailSender;
 import dk.nsi.haiba.epimibaimporter.log.Log;
-import dk.nsi.haiba.epimibaimporter.model.CaseDef;
-import dk.nsi.haiba.epimibaimporter.model.Header;
-import dk.nsi.haiba.epimibaimporter.model.Isolate;
-import dk.nsi.haiba.epimibaimporter.model.Quantitative;
 import dk.nsi.haiba.epimibaimporter.status.CurrentImportProgress;
 import dk.nsi.haiba.epimibaimporter.status.ImportStatusRepository;
-import dk.nsi.haiba.epimibaimporter.ws.EpimibaWebserviceClient;
 import dk.nsi.stamdata.jaxws.generated.Answer;
-import dk.nsi.stamdata.jaxws.generated.ArrayOfPComment;
-import dk.nsi.stamdata.jaxws.generated.ArrayOfPIsolate;
-import dk.nsi.stamdata.jaxws.generated.ArrayOfPQuantitative;
-import dk.nsi.stamdata.jaxws.generated.PComment;
-import dk.nsi.stamdata.jaxws.generated.PIsolate;
-import dk.nsi.stamdata.jaxws.generated.PQuantitative;
 
 /*
  * Scheduled job, responsible for fetching new data from LPR, then send it to the RulesEngine for further processing
@@ -68,24 +55,19 @@ public class ImportExecutor {
     private boolean manualOverride;
 
     @Autowired
-    HAIBADAO haibaDao;
+    private HAIBADAO haibaDao;
 
     @Autowired
-    ImportStatusRepository statusRepo;
+    private ImportStatusRepository statusRepo;
 
     @Autowired
-    EpimibaWebserviceClient epimibaWebserviceClient;
+    private EmailSender emailSender;
 
     @Autowired
-    EmailSender emailSender;
+    private ClassificationCheckDAO classificationCheckDAO;
 
     @Autowired
-    ClassificationCheckDAO classificationCheckDAO;
-
-    @Autowired
-    CurrentImportProgress currentImportProgress;
-
-    private Comparator<? super Answer> aSortAnswersByTransactionIdComparator = new SortAnswersByTransactionIdComparator();
+    private CurrentImportProgress currentImportProgress;
 
     @Value("${import.testpatients:false}")
     private boolean allowTestPt;
@@ -111,73 +93,6 @@ public class ImportExecutor {
                 emailSender.sendHello();
             }
             currentImportProgress.reset();
-
-            // update tab tables first, in order to copy proper values into location/classification tables for used
-            // values
-            currentImportProgress.addStatusLine("importing and storing analysis data");
-            haibaDao.clearAnalysisTable();
-            haibaDao.saveAnalysis(epimibaWebserviceClient.getClassifications("Analysis"));
-
-            currentImportProgress.addStatusLine("importing and storing investigation data");
-            haibaDao.clearInvestigationTable();
-            haibaDao.saveInvestigation(epimibaWebserviceClient.getClassifications("Investigation"));
-
-            currentImportProgress.addStatusLine("importing and storing labsection data");
-            haibaDao.clearLabSectionTable();
-            haibaDao.saveLabSection(epimibaWebserviceClient.getClassifications("LabSection"));
-
-            currentImportProgress.addStatusLine("importing and storing locations data");
-            haibaDao.clearLocationTable();
-            haibaDao.saveLocation(epimibaWebserviceClient.getClassifications("Locations"));
-
-            currentImportProgress.addStatusLine("importing and storing organization data");
-            haibaDao.clearOrganizationTable();
-            haibaDao.saveOrganization(epimibaWebserviceClient.getClassifications("Organization"));
-
-            currentImportProgress.addStatusLine("importing and storing microorganism data");
-            haibaDao.clearMicroorganismTable();
-            haibaDao.saveMicroorganism(epimibaWebserviceClient.getClassifications("Microorganism"));
-
-            // iterate through case definitions from casedef table
-            CaseDef[] caseDefArray = haibaDao.getCaseDefs();
-            for (CaseDef caseDef : caseDefArray) {
-                currentImportProgress.addStatusLine("importing and storing headers for " + caseDef.getText() + "/"
-                        + caseDef.getId());
-                boolean hasAnswers = true;
-                log.debug("testing for " + caseDef);
-                String lastStatus = null;
-                while (hasAnswers) {
-                    long latestTransactionId = haibaDao.getLatestTransactionId(caseDef.getId());
-                    List<Answer> answers = epimibaWebserviceClient.getAnswers(latestTransactionId + 1, caseDef.getId());
-                    // be sure that answers are sorted by transaction id - else failure/recovery breaks as unordered
-                    // transaction ids allows answers overtaking each other and potentially prohibiting fetching of all
-                    // answers
-                    Collections.sort(answers, aSortAnswersByTransactionIdComparator);
-                    String status = "read " + answers.size() + " answers for " + caseDef.getText();
-                    // write a dot if the same status is repeated over and over, else the new status
-                    if (status.equals(lastStatus)) {
-                        currentImportProgress.addProgressDot();
-                    } else {
-                        currentImportProgress.addStatusLine(status);
-                    }
-                    lastStatus = status;
-                    if (answers == null || answers.size() == 0) {
-                        log.debug("No more answers on " + caseDef);
-                        hasAnswers = false;
-                    } else {
-                        log.debug("got " + answers.size());
-                        for (Answer answer : answers) {
-                            if (allowTestPt || answer.isTestPt() == null || !answer.isTestPt()) {
-                                Header header = getHeader(answer, caseDef.getId());
-                                haibaDao.saveHeader(header, answer.getTransactionID().longValue(), caseDef.getId());
-                            } else {
-                                log.debug("not saving header for test patient on transaction id "
-                                        + answer.getTransactionID());
-                            }
-                        }
-                    }
-                }
-            }
             currentImportProgress.addStatusLine("checking for new alnr/banr");
             Collection<String> alnrInNewAnswers = haibaDao.getAllAlnr();
             Collection<String> banrInNewAnswers = haibaDao.getAllBanr();
@@ -208,79 +123,6 @@ public class ImportExecutor {
             log.debug("send email about new banr=" + unknownBanrSet + " or new alnr=" + unknownAlnrSet);
             emailSender.send(unknownBanrSet, unknownAlnrSet);
         }
-    }
-
-    private Header getHeader(Answer answer, int caseDef) {
-        Header h = new Header();
-        h.setCommentText(getCommentText(answer));
-        h.setCaseDef("" + caseDef);
-        h.setHeaderId(answer.getHeaderId());
-        h.setAlnr(answer.getLocationAlnr());
-        h.setAvd(answer.getAvd());
-        h.setCprnr(answer.getCprnr().replace("-", ""));
-        h.setEvaluationText(answer.getEvaluationText());
-        h.setExtid(answer.getExtId());
-        if (answer.getIndate() != null) {
-            h.setInDate(answer.getIndate().toGregorianCalendar().getTime());
-        }
-        h.setLabnr("" + answer.getLabnr());
-        h.setLar("" + answer.getLar());
-        h.setMgkod(answer.getMgkod());
-        h.setPname(answer.getPname());
-        if (answer.getPrdate() != null) {
-            h.setPrDate(answer.getPrdate().toGregorianCalendar().getTime());
-        }
-        h.setRefnr(answer.getRefnr());
-        h.setResult(answer.getResult());
-        // h.setStnr() - TODO not found in answer
-        h.setUsnr(answer.getUsnr());
-
-        ArrayOfPIsolate isolates = answer.getIsolates();
-        List<PIsolate> pIsolate = isolates.getPIsolate();
-        log.debug("Adding " + pIsolate.size() + " isolates");
-        for (PIsolate isolate : pIsolate) {
-            Isolate i = new Isolate();
-            i.setBanr(isolate.getIsolateBanr());
-            i.setIsolateId(isolate.getIsolateId());
-            i.setQuantity(isolate.getIsolateQuantity());
-            log.debug("Adding isolate: " + isolate.getIsolateId());
-            h.addIsolate(i);
-        }
-
-        ArrayOfPQuantitative quantitatives = answer.getQuantitatives();
-        List<PQuantitative> pQuantitative = quantitatives.getPQuantitative();
-        log.debug("Adding " + pQuantitative.size() + " quantitatives");
-        for (PQuantitative quantitative : pQuantitative) {
-            Quantitative q = new Quantitative();
-            q.setQuantitativeId(quantitative.getQuantitativeId());
-            q.setAnalysis(quantitative.getQuantitativeAnalysis());
-            q.setComment(quantitative.getQuantitativeComment());
-            q.setEvaluationText(quantitative.getQuantitativeEvaluationText());
-            q.setQtnr("" + quantitative.getQuantitativeQtnr()); // TODO shouldn't this be an int?
-            q.setQuantity(quantitative.getQuantitativeQuantity());
-            log.debug("Adding quantitative: " + quantitative.getQuantitativeId());
-            h.addQuantitative(q);
-        }
-
-        return h;
-    }
-
-    private String getCommentText(Answer answer) {
-        String returnValue = null;
-        ArrayOfPComment comments = answer.getComments();
-        if (comments != null) {
-            List<PComment> pComments = comments.getPComment();
-            if (pComments != null) {
-                for (PComment pComment : pComments) {
-                    if (returnValue != null) {
-                        returnValue += "///" + pComment.getCommentText();
-                    } else {
-                        returnValue = pComment.getCommentText();
-                    }
-                }
-            }
-        }
-        return returnValue;
     }
 
     public boolean isManualOverride() {

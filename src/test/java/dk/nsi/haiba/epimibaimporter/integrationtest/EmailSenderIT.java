@@ -55,12 +55,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.transaction.annotation.Transactional;
 
-import dk.nsi.haiba.epimibaimporter.dao.impl.HAIBADAOImpl;
 import dk.nsi.haiba.epimibaimporter.email.EmailSender;
 import dk.nsi.haiba.epimibaimporter.importer.ImportExecutor;
 import dk.nsi.haiba.epimibaimporter.model.Classification;
 import dk.nsi.haiba.epimibaimporter.status.CurrentImportProgress;
-import dk.nsi.haiba.epimibaimporter.ws.EpimibaWebserviceClient;
 import dk.nsi.stamdata.jaxws.generated.Answer;
 import dk.nsi.stamdata.jaxws.generated.ArrayOfPComment;
 import dk.nsi.stamdata.jaxws.generated.ArrayOfPIsolate;
@@ -81,18 +79,10 @@ public class EmailSenderIT {
         public EmailSender emailSender() {
             return Mockito.mock(EmailSender.class);
         }
-
-        @Bean
-        public EpimibaWebserviceClient epimibaWebserviceClient() {
-            return Mockito.mock(EpimibaWebserviceClient.class);
-        }
     }
 
     @Autowired
     EmailSender emailSender;
-
-    @Autowired
-    EpimibaWebserviceClient epimibaWebserviceClient;
 
     @Autowired
     ImportExecutor importExecutor;
@@ -108,38 +98,11 @@ public class EmailSenderIT {
     public void init() {
         Logger.getLogger(ImportExecutor.class).setLevel(Level.DEBUG);
         Logger.getLogger(EmailSender.class).setLevel(Level.DEBUG);
-        Logger.getLogger(EpimibaWebserviceClient.class).setLevel(Level.DEBUG);
     }
 
     @Test
     public void simpleMailTest() {
         emailSender.sendHello();
-    }
-
-    @Test
-    public void testHeaderInserts() {
-        Logger.getLogger(ImportExecutor.class).setLevel(Level.ERROR);
-        int count = jdbc.queryForInt("SELECT COUNT(*) FROM Header");
-        assertEquals("Empty Header", 0, count);
-        int answerCount = 100;
-        List<Answer> answers = createAnswers(answerCount);
-
-        Mockito.when(epimibaWebserviceClient.getAnswers(1, 119)).thenReturn(answers);
-        long time = System.currentTimeMillis();
-        importExecutor.doProcess(true);
-        long period = System.currentTimeMillis() - time;
-
-        System.out.println("time to insert " + answerCount + " into headers: " + period / 1000d + " seconds");
-
-        Mockito.verify(epimibaWebserviceClient, Mockito.times(1)).getAnswers(1, 119);
-        count = jdbc.queryForInt("SELECT COUNT(*) FROM Header");
-        assertEquals("Not empty Header", answerCount, count);
-        
-        String commentText = jdbc.queryForObject("SELECT CommentText FROM Header LIMIT 1", String.class);
-        assertNotNull(commentText);
-        assertTrue(commentText.contains("///"));
-        
-        Logger.getLogger(ImportExecutor.class).setLevel(Level.DEBUG);
     }
 
     private List<Answer> createAnswers(int answerCount) {
@@ -191,52 +154,10 @@ public class EmailSenderIT {
         count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_Location");
         assertEquals("Empty Anvendt_Klass_Location", 0, count);
 
-        List<Answer> answers = new ArrayList<Answer>();
-        Answer a = new Answer();
-        a.setHeaderId(0);
-        a.setLocationAlnr("1");
-        a.setCprnr("x");
-        PIsolate pisolate = new PIsolate();
-        pisolate.setIsolateBanr("2");
-        ArrayOfPIsolate arrayOfPIsolate = new ArrayOfPIsolate();
-        arrayOfPIsolate.getPIsolate().add(pisolate);
-        a.setIsolates(arrayOfPIsolate);
-        a.setQuantitatives(new ArrayOfPQuantitative());
-        a.setTransactionID(new BigInteger("17"));
-        answers.add(a);
-        a = new Answer();
-        a.setHeaderId(0);
-        a.setLocationAlnr("1");
-        a.setCprnr("x");
-        pisolate = new PIsolate();
-        pisolate.setIsolateBanr("3");
-        arrayOfPIsolate = new ArrayOfPIsolate();
-        arrayOfPIsolate.getPIsolate().add(pisolate);
-        a.setIsolates(arrayOfPIsolate);
-        a.setQuantitatives(new ArrayOfPQuantitative());
-        a.setTransactionID(new BigInteger("18"));
-        answers.add(a);
-        Mockito.when(epimibaWebserviceClient.getAnswers(1, 119)).thenReturn(answers);
-        List<Classification> locations = new ArrayList<Classification>();
-        Classification classification = new Classification();
-        classification.setCode("1");
-        classification.setId(1);
-        classification.setText("1");
-        locations.add(classification);
-        Mockito.when(epimibaWebserviceClient.getClassifications("Locations")).thenReturn(locations);
-        List<Classification> microorganisms = new ArrayList<Classification>();
-        classification = new Classification();
-        classification.setCode("2");
-        classification.setId(2);
-        classification.setText("2");
-        microorganisms.add(classification);
-        classification = new Classification();
-        classification.setCode("3");
-        classification.setId(3);
-        classification.setText("3");
-        microorganisms.add(classification);
-        Mockito.when(epimibaWebserviceClient.getClassifications("Microorganism")).thenReturn(microorganisms);
-
+        jdbc.update("INSERT INTO Header (Alnr) VALUES ('1')");
+        jdbc.update("INSERT INTO Isolate (Banr) VALUES ('2')");
+        jdbc.update("INSERT INTO Isolate (Banr) VALUES ('3')");
+        
         importExecutor.doProcess(true);
 
         // new, so notify
@@ -244,6 +165,7 @@ public class EmailSenderIT {
         Set<String> unknownAlnrSet = new HashSet<String>(Arrays.asList(new String[] { "1" }));
         Mockito.verify(emailSender, Mockito.times(1)).send(unknownBanrSet, unknownAlnrSet);
 
+        // XXX fails as nothing is copied - source table is empty (nothing is imported from ws into TabMicroorganism)
         count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_microorganism");
         assertEquals("Not Empty Anvendt_Klass_microorganism", 2, count);
         count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_Location");

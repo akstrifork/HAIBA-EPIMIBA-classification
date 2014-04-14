@@ -60,7 +60,6 @@ import dk.nsi.haiba.epimibaimporter.status.ImportStatusRepository;
 import dk.nsi.haiba.epimibaimporter.status.ImportStatusRepositoryJdbcImpl;
 import dk.nsi.haiba.epimibaimporter.status.TimeSource;
 import dk.nsi.haiba.epimibaimporter.status.TimeSourceRealTimeImpl;
-import dk.nsi.haiba.epimibaimporter.ws.EpimibaWebserviceClient;
 
 /**
  * Configuration class providing the common infrastructure.
@@ -181,11 +180,6 @@ public class EPIMIBAConfiguration {
     @Bean
     public HAIBADAO haibaDao() {
         return new HAIBADAOImpl();
-    }
-
-    @Bean
-    public EpimibaWebserviceClient epimibaWebserviceClient() {
-        return new EpimibaWebserviceClient();
     }
 
     @Bean
