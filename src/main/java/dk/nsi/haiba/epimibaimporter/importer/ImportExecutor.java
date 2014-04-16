@@ -44,6 +44,7 @@ import dk.nsi.haiba.epimibaimporter.email.EmailSender;
 import dk.nsi.haiba.epimibaimporter.log.Log;
 import dk.nsi.haiba.epimibaimporter.status.CurrentImportProgress;
 import dk.nsi.haiba.epimibaimporter.status.ImportStatusRepository;
+import dk.nsi.haiba.epimibaimporter.ws.EpimibaWebserviceClient;
 import dk.nsi.stamdata.jaxws.generated.Answer;
 
 /*
@@ -59,6 +60,9 @@ public class ImportExecutor {
 
     @Autowired
     private ImportStatusRepository statusRepo;
+
+    @Autowired
+    private EpimibaWebserviceClient epimibaWebserviceClient;
 
     @Autowired
     private EmailSender emailSender;
@@ -93,6 +97,34 @@ public class ImportExecutor {
                 emailSender.sendHello();
             }
             currentImportProgress.reset();
+            
+            // import into tab tables
+            // update tab tables first, in order to copy proper values into location/classification tables for used
+            // values
+            currentImportProgress.addStatusLine("importing and storing analysis data");
+            haibaDao.clearAnalysisTable();
+            haibaDao.saveAnalysis(epimibaWebserviceClient.getClassifications("Analysis"));
+
+            currentImportProgress.addStatusLine("importing and storing investigation data");
+            haibaDao.clearInvestigationTable();
+            haibaDao.saveInvestigation(epimibaWebserviceClient.getClassifications("Investigation"));
+
+            currentImportProgress.addStatusLine("importing and storing labsection data");
+            haibaDao.clearLabSectionTable();
+            haibaDao.saveLabSection(epimibaWebserviceClient.getClassifications("LabSection"));
+
+            currentImportProgress.addStatusLine("importing and storing locations data");
+            haibaDao.clearLocationTable();
+            haibaDao.saveLocation(epimibaWebserviceClient.getClassifications("Locations"));
+
+            currentImportProgress.addStatusLine("importing and storing organization data");
+            haibaDao.clearOrganizationTable();
+            haibaDao.saveOrganization(epimibaWebserviceClient.getClassifications("Organization"));
+
+            currentImportProgress.addStatusLine("importing and storing microorganism data");
+            haibaDao.clearMicroorganismTable();
+            haibaDao.saveMicroorganism(epimibaWebserviceClient.getClassifications("Microorganism"));
+            
             currentImportProgress.addStatusLine("checking for new alnr/banr");
             Collection<String> alnrInNewAnswers = haibaDao.getAllAlnr();
             Collection<String> banrInNewAnswers = haibaDao.getAllBanr();

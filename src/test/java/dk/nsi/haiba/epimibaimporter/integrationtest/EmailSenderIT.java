@@ -27,8 +27,6 @@
 package dk.nsi.haiba.epimibaimporter.integrationtest;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -59,6 +57,7 @@ import dk.nsi.haiba.epimibaimporter.email.EmailSender;
 import dk.nsi.haiba.epimibaimporter.importer.ImportExecutor;
 import dk.nsi.haiba.epimibaimporter.model.Classification;
 import dk.nsi.haiba.epimibaimporter.status.CurrentImportProgress;
+import dk.nsi.haiba.epimibaimporter.ws.EpimibaWebserviceClient;
 import dk.nsi.stamdata.jaxws.generated.Answer;
 import dk.nsi.stamdata.jaxws.generated.ArrayOfPComment;
 import dk.nsi.stamdata.jaxws.generated.ArrayOfPIsolate;
@@ -79,10 +78,18 @@ public class EmailSenderIT {
         public EmailSender emailSender() {
             return Mockito.mock(EmailSender.class);
         }
+
+        @Bean
+        public EpimibaWebserviceClient epimibaWebserviceClient() {
+            return Mockito.mock(EpimibaWebserviceClient.class);
+        }
     }
 
     @Autowired
     EmailSender emailSender;
+
+    @Autowired
+    EpimibaWebserviceClient epimibaWebserviceClient;
 
     @Autowired
     ImportExecutor importExecutor;
@@ -157,6 +164,27 @@ public class EmailSenderIT {
         jdbc.update("INSERT INTO Header (Alnr) VALUES ('1')");
         jdbc.update("INSERT INTO Isolate (Banr) VALUES ('2')");
         jdbc.update("INSERT INTO Isolate (Banr) VALUES ('3')");
+        
+        List<Classification> locations = new ArrayList<Classification>();
+        Classification classification = new Classification();
+        classification.setCode("1");
+        classification.setId(1);
+        classification.setText("1");
+        locations.add(classification);
+        Mockito.when(epimibaWebserviceClient.getClassifications("Locations")).thenReturn(locations);
+        List<Classification> microorganisms = new ArrayList<Classification>();
+        classification = new Classification();
+        classification.setCode("2");
+        classification.setId(2);
+        classification.setText("2");
+        microorganisms.add(classification);
+        classification = new Classification();
+        classification.setCode("3");
+        classification.setId(3);
+        classification.setText("3");
+        microorganisms.add(classification);
+        Mockito.when(epimibaWebserviceClient.getClassifications("Microorganism")).thenReturn(microorganisms);
+
         
         importExecutor.doProcess(true);
 

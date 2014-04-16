@@ -24,40 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package dk.nsi.haiba.epimibaimporter.dao;
+package dk.nsi.haiba.epimibaimporter.ws;
 
-import java.util.Collection;
-import java.util.List;
+@SuppressWarnings("serial")
+public class EpimibaWebserviceException extends RuntimeException {
+	
+	public EpimibaWebserviceException(String message) {
+		super(message);
+	}
 
-import dk.nsi.haiba.epimibaimporter.exception.DAOException;
-import dk.nsi.haiba.epimibaimporter.model.Classification;
+	public EpimibaWebserviceException(String message, Throwable t) {
+		super(message, t);
+	}
+	
+	public EpimibaWebserviceException(Throwable t) {
+		super(t.getMessage(), t);
+	}
+	
 
-public interface HAIBADAO {
-    Collection<String> getAllAlnr();
-
-    Collection<String> getAllBanr();
-    
-    void saveAnalysis(List<Classification> codeList) throws DAOException;
-
-    void saveInvestigation(List<Classification> codeList) throws DAOException;
-
-    void saveLabSection(List<Classification> codeList) throws DAOException;
-
-    void saveLocation(List<Classification> codeList) throws DAOException;
-
-    void saveOrganization(List<Classification> codeList) throws DAOException;
-
-    void saveMicroorganism(List<Classification> codeList) throws DAOException;
-
-    void clearAnalysisTable() throws DAOException;
-
-    void clearInvestigationTable() throws DAOException;
-
-    void clearLabSectionTable() throws DAOException;
-
-    void clearLocationTable() throws DAOException;
-
-    void clearOrganizationTable() throws DAOException;
-
-    void clearMicroorganismTable() throws DAOException;
 }

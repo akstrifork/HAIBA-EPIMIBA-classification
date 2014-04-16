@@ -27,6 +27,7 @@
 package dk.nsi.haiba.epimibaimporter.dao.impl;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import dk.nsi.haiba.epimibaimporter.dao.CommonDAO;
 import dk.nsi.haiba.epimibaimporter.dao.HAIBADAO;
+import dk.nsi.haiba.epimibaimporter.exception.DAOException;
 import dk.nsi.haiba.epimibaimporter.log.Log;
+import dk.nsi.haiba.epimibaimporter.model.Classification;
 
 @Transactional("haibaTransactionManager")
 public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
@@ -69,4 +72,147 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         log.trace("getAllBanr returns " + returnValue);
         return returnValue;
     }
+    
+    @Override
+    public void clearAnalysisTable() throws DAOException {
+        try {
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabAnalysis");
+        } catch (Exception e) {
+            throw new DAOException("", e);
+        }
+    }
+
+    @Override
+    public void clearInvestigationTable() throws DAOException {
+        try {
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabInvestigation");
+        } catch (Exception e) {
+            throw new DAOException("", e);
+        }
+    }
+
+    @Override
+    public void clearLabSectionTable() throws DAOException {
+        try {
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabLabSection");
+        } catch (Exception e) {
+            throw new DAOException("", e);
+        }
+    }
+
+    @Override
+    public void clearLocationTable() throws DAOException {
+        try {
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabLocation");
+        } catch (Exception e) {
+            throw new DAOException("", e);
+        }
+    }
+
+    @Override
+    public void clearOrganizationTable() throws DAOException {
+        try {
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabOrganization");
+        } catch (Exception e) {
+            throw new DAOException("", e);
+        }
+    }
+
+    @Override
+    public void clearMicroorganismTable() throws DAOException {
+        try {
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Tabmicroorganism");
+        } catch (Exception e) {
+            throw new DAOException("", e);
+        }
+    }
+
+    @Override
+    public void saveAnalysis(List<Classification> codeList) throws DAOException {
+
+        log.debug("** Inserting " + codeList.size() + " Analysis classifications");
+        for (Classification c : codeList) {
+
+            String sql = "INSERT INTO " + haibaTablePrefix + "TabAnalysis (TabAnalysisId, Qtnr, Text) VALUES(?,?,?)";
+
+            Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
+            jdbc.update(sql, args);
+        }
+        log.debug("** Inserted Analysis classifications");
+    }
+
+    @Override
+    public void saveInvestigation(List<Classification> codeList) throws DAOException {
+
+        log.debug("** Inserting " + codeList.size() + " Investigation classifications");
+        for (Classification c : codeList) {
+
+            String sql = "INSERT INTO " + haibaTablePrefix
+                    + "TabInvestigation (TabInvestigationId, Usnr, Text) VALUES(?,?,?)";
+
+            Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
+            jdbc.update(sql, args);
+        }
+        log.debug("** Inserted Investigation classifications");
+    }
+
+    @Override
+    public void saveLabSection(List<Classification> codeList) throws DAOException {
+
+        log.debug("** Inserting " + codeList.size() + " LabSection classifications");
+        for (Classification c : codeList) {
+
+            String sql = "INSERT INTO " + haibaTablePrefix + "TabLabSection (TabLabSectionId, Avd, Text) VALUES(?,?,?)";
+
+            Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
+            jdbc.update(sql, args);
+        }
+        log.debug("** Inserted LabSection classifications");
+
+    }
+
+    @Override
+    public void saveLocation(List<Classification> codeList) throws DAOException {
+
+        log.debug("** Inserting " + codeList.size() + " Location classifications");
+        for (Classification c : codeList) {
+
+            String sql = "INSERT INTO " + haibaTablePrefix + "TabLocation (TabLocationId, Alnr, Text) VALUES(?,?,?)";
+
+            Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
+            jdbc.update(sql, args);
+        }
+        log.debug("** Inserted Location classifications");
+
+    }
+
+    @Override
+    public void saveOrganization(List<Classification> codeList) throws DAOException {
+
+        log.debug("** Inserting " + codeList.size() + " Organization classifications");
+        for (Classification c : codeList) {
+
+            String sql = "INSERT INTO " + haibaTablePrefix
+                    + "TabOrganization (TabOrganizationId, Mgkod, Text) VALUES(?,?,?)";
+
+            Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
+            jdbc.update(sql, args);
+        }
+        log.debug("** Inserted Organization classifications");
+    }
+
+    @Override
+    public void saveMicroorganism(List<Classification> codeList) throws DAOException {
+        log.debug("** Inserting " + codeList.size() + " Microorganism classifications");
+        for (Classification c : codeList) {
+
+            String sql = "INSERT INTO " + haibaTablePrefix
+                    + "Tabmicroorganism (TabMicroorganismId, Banr, Text) VALUES(?,?,?)";
+
+            Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
+            jdbc.update(sql, args);
+        }
+        log.debug("** Inserted Microorganism classifications");
+    }
+
 }
