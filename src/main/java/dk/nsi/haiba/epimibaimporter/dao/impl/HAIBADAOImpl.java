@@ -76,7 +76,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     @Override
     public void clearAnalysisTable() throws DAOException {
         try {
-            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabAnalysis");
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Class_TabAnalysis");
         } catch (Exception e) {
             throw new DAOException("", e);
         }
@@ -85,7 +85,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     @Override
     public void clearInvestigationTable() throws DAOException {
         try {
-            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabInvestigation");
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Class_TabInvestigation");
         } catch (Exception e) {
             throw new DAOException("", e);
         }
@@ -94,7 +94,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     @Override
     public void clearLabSectionTable() throws DAOException {
         try {
-            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabLabSection");
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Class_TabLabSection");
         } catch (Exception e) {
             throw new DAOException("", e);
         }
@@ -103,7 +103,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     @Override
     public void clearLocationTable() throws DAOException {
         try {
-            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabLocation");
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Class_TabLocation");
         } catch (Exception e) {
             throw new DAOException("", e);
         }
@@ -112,7 +112,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     @Override
     public void clearOrganizationTable() throws DAOException {
         try {
-            jdbc.update("DELETE FROM " + haibaTablePrefix + "TabOrganization");
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Class_TabOrganization");
         } catch (Exception e) {
             throw new DAOException("", e);
         }
@@ -121,7 +121,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     @Override
     public void clearMicroorganismTable() throws DAOException {
         try {
-            jdbc.update("DELETE FROM " + haibaTablePrefix + "Tabmicroorganism");
+            jdbc.update("DELETE FROM " + haibaTablePrefix + "Class_TabMicroorganism");
         } catch (Exception e) {
             throw new DAOException("", e);
         }
@@ -133,7 +133,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         log.debug("** Inserting " + codeList.size() + " Analysis classifications");
         for (Classification c : codeList) {
 
-            String sql = "INSERT INTO " + haibaTablePrefix + "TabAnalysis (TabAnalysisId, Qtnr, Text) VALUES(?,?,?)";
+            String sql = "INSERT INTO " + haibaTablePrefix + "Class_TabAnalysis (TabAnalysisId, Qtnr, Text) VALUES(?,?,?)";
 
             Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
             jdbc.update(sql, args);
@@ -148,7 +148,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         for (Classification c : codeList) {
 
             String sql = "INSERT INTO " + haibaTablePrefix
-                    + "TabInvestigation (TabInvestigationId, Usnr, Text) VALUES(?,?,?)";
+                    + "Class_TabInvestigation (TabInvestigationId, Usnr, Text) VALUES(?,?,?)";
 
             Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
             jdbc.update(sql, args);
@@ -162,7 +162,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         log.debug("** Inserting " + codeList.size() + " LabSection classifications");
         for (Classification c : codeList) {
 
-            String sql = "INSERT INTO " + haibaTablePrefix + "TabLabSection (TabLabSectionId, Avd, Text) VALUES(?,?,?)";
+            String sql = "INSERT INTO " + haibaTablePrefix + "Class_TabLabSection (TabLabSectionId, Avd, Text) VALUES(?,?,?)";
 
             Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
             jdbc.update(sql, args);
@@ -177,7 +177,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         log.debug("** Inserting " + codeList.size() + " Location classifications");
         for (Classification c : codeList) {
 
-            String sql = "INSERT INTO " + haibaTablePrefix + "TabLocation (TabLocationId, Alnr, Text) VALUES(?,?,?)";
+            String sql = "INSERT INTO " + haibaTablePrefix + "Class_TabLocation (TabLocationId, Alnr, Text) VALUES(?,?,?)";
 
             Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
             jdbc.update(sql, args);
@@ -193,7 +193,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         for (Classification c : codeList) {
 
             String sql = "INSERT INTO " + haibaTablePrefix
-                    + "TabOrganization (TabOrganizationId, Mgkod, Text) VALUES(?,?,?)";
+                    + "Class_TabOrganization (TabOrganizationId, Mgkod, Text) VALUES(?,?,?)";
 
             Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
             jdbc.update(sql, args);
@@ -207,7 +207,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
         for (Classification c : codeList) {
 
             String sql = "INSERT INTO " + haibaTablePrefix
-                    + "Tabmicroorganism (TabMicroorganismId, Banr, Text) VALUES(?,?,?)";
+                    + "Class_TabMicroorganism (TabMicroorganismId, Banr, Text) VALUES(?,?,?)";
 
             Object[] args = new Object[] { c.getId(), c.getCode(), c.getText() };
             jdbc.update(sql, args);

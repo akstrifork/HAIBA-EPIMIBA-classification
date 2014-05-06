@@ -156,10 +156,10 @@ public class EmailSenderIT {
     @Test
     public void testEmailSendOnNewEntries() {
         Mockito.reset(emailSender);
-        int count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_microorganism");
-        assertEquals("Empty Anvendt_Klass_microorganism", 0, count);
-        count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_Location");
-        assertEquals("Empty Anvendt_Klass_Location", 0, count);
+        int count = jdbc.queryForInt("SELECT COUNT(*) FROM Class_dynamic_microorganism");
+        assertEquals("Empty Class_dynamic_microorganism", 0, count);
+        count = jdbc.queryForInt("SELECT COUNT(*) FROM Class_dynamic_location");
+        assertEquals("Empty Class_dynamic_location", 0, count);
 
         jdbc.update("INSERT INTO Header (Alnr) VALUES ('1')");
         jdbc.update("INSERT INTO Isolate (Banr) VALUES ('2')");
@@ -194,10 +194,10 @@ public class EmailSenderIT {
         Mockito.verify(emailSender, Mockito.times(1)).send(unknownBanrSet, unknownAlnrSet);
 
         // XXX fails as nothing is copied - source table is empty (nothing is imported from ws into TabMicroorganism)
-        count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_microorganism");
-        assertEquals("Not Empty Anvendt_Klass_microorganism", 2, count);
-        count = jdbc.queryForInt("SELECT COUNT(*) FROM Anvendt_Klass_Location");
-        assertEquals("Not Empty Anvendt_Klass_Location", 1, count);
+        count = jdbc.queryForInt("SELECT COUNT(*) FROM Class_dynamic_microorganism");
+        assertEquals("Not Empty Class_dynamic_microorganism", 2, count);
+        count = jdbc.queryForInt("SELECT COUNT(*) FROM Class_dynamic_location");
+        assertEquals("Not Empty Class_dynamic_location", 1, count);
 
         System.out.println(currentImportProgress.getStatus());
         importExecutor.doProcess(true);

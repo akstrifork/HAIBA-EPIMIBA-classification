@@ -1,34 +1,34 @@
-CREATE TABLE Tabmicroorganism (
+CREATE TABLE Class_TabMicroorganism (
 	   TabmicroorganismId BIGINT NOT NULL PRIMARY KEY,
        Banr varchar(50),
        Text varchar(300)
 );
 
-CREATE TABLE TabLabSection (
+CREATE TABLE Class_TabLabSection (
 	   TabLabSectionId BIGINT NOT NULL PRIMARY KEY,
        Avd varchar(50),
        Text varchar(300)
 );
 
-CREATE TABLE TabOrganization (
+CREATE TABLE Class_TabOrganization (
 	   TabOrganizationId BIGINT NOT NULL PRIMARY KEY,
        Mgkod varchar(300),
        Text varchar(300)
 );
 
-CREATE TABLE TabAnalysis (
+CREATE TABLE Class_TabAnalysis (
 	   TabAnalysisId BIGINT NOT NULL PRIMARY KEY,
        Qtnr varchar(300),
        Text varchar(300)
 );
 
-CREATE TABLE TabInvestigation (
+CREATE TABLE Class_TabInvestigation (
 	   TabInvestigationId BIGINT NOT NULL PRIMARY KEY,
        Usnr varchar(50),
        Text varchar(300)
 );
 
-CREATE TABLE TabLocation (
+CREATE TABLE Class_TabLocation (
 	   TabLocationId BIGINT NOT NULL PRIMARY KEY,
        Alnr varchar(200),
        Text varchar(300)
@@ -50,14 +50,14 @@ CREATE TABLE EpimibaTransaction (
 );
 
 -- other database
-CREATE TABLE Anvendt_Klass_microorganism (
+CREATE TABLE Class_dynamic_microorganism (
     TabmicroorganismId BIGINT NOT NULL PRIMARY KEY,
     Banr varchar(50) NOT NULL,
     Text varchar(300) NULL,
     H_BAKT_MICRO float NULL
 );
 
-CREATE TABLE Anvendt_Klass_Location (
+CREATE TABLE Class_dynamic_location (
     TabLocationId BIGINT NOT NULL PRIMARY KEY,
     Alnr varchar(50) NOT NULL,
     Text varchar(300) NULL,
