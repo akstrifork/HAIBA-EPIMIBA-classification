@@ -57,7 +57,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     public Collection<String> getAllAlnr() {
         Collection<String> returnValue = null;
         log.debug("** querying for Alnr");
-        String sql = "SELECT DISTINCT Alnr FROM " + haibaTablePrefix + "Header";
+        String sql = "SELECT DISTINCT Alnr FROM " + haibaTablePrefix + "Data_Header";
         returnValue = jdbc.queryForList(sql, String.class);
         log.trace("getAllAlnr returns " + returnValue);
         return returnValue;
@@ -67,7 +67,7 @@ public class HAIBADAOImpl extends CommonDAO implements HAIBADAO {
     public Collection<String> getAllBanr() {
         Collection<String> returnValue = null;
         log.debug("** querying for Banr");
-        String sql = "SELECT DISTINCT Banr FROM " + haibaTablePrefix + "Isolate";
+        String sql = "SELECT DISTINCT Banr FROM " + haibaTablePrefix + "Data_Isolate";
         returnValue = jdbc.queryForList(sql, String.class);
         log.trace("getAllBanr returns " + returnValue);
         return returnValue;

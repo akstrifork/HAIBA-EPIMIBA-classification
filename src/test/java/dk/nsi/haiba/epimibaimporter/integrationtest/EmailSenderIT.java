@@ -161,9 +161,9 @@ public class EmailSenderIT {
         count = jdbc.queryForInt("SELECT COUNT(*) FROM Class_dynamic_location");
         assertEquals("Empty Class_dynamic_location", 0, count);
 
-        jdbc.update("INSERT INTO Header (Alnr) VALUES ('1')");
-        jdbc.update("INSERT INTO Isolate (Banr) VALUES ('2')");
-        jdbc.update("INSERT INTO Isolate (Banr) VALUES ('3')");
+        jdbc.update("INSERT INTO Data_Header (Alnr) VALUES ('1')");
+        jdbc.update("INSERT INTO Data_Isolate (Banr) VALUES ('2')");
+        jdbc.update("INSERT INTO Data_Isolate (Banr) VALUES ('3')");
         
         List<Classification> locations = new ArrayList<Classification>();
         Classification classification = new Classification();
